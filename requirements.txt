@@ -1,0 +1,9 @@
+scikit-learn==1.0.2
+transformers==4.24.0
+sentencepiece==0.1.97
+evaluate==0.3.0
+googletrans==3.1.0a0
+accelerate==0.14.0
+sacrebleu==2.3.1
+nltk==3.7
+sacremoses==0.0.53
