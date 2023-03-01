@@ -14,7 +14,7 @@ This repository includes:
 
 
 # Quickstart
-We provide a [tutorials](https://github.com/gyasifred/TW-FR-MT/tree/main/tutorials) which contains the complete pipeine from fine-tuning to evaluation.
+We provide a [tutorials](https://github.com/gyasifred/TW-FR-MT/tree/main/tutorials) which contains the complete pipeline from fine-tuning to evaluation.
 
 # Contributing
 Please first clone this repo to your local machine, using a command line tool such as Cygwin or Anaconda Prompt:
