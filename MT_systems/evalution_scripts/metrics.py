@@ -2,6 +2,9 @@ import nltk
 import numpy as np
 from nltk.translate.bleu_score import sentence_bleu
 import sacrebleu
+import evaluate
+
+ter = evaluate.load("ter")
 
 
 class BLEU():
@@ -145,3 +148,36 @@ class Sacrebleu():
                                      tokenize="intl",
                                      use_effective_order=True)
         return f'SacreBLEU SCORE: {bleu.score:.2f}'
+
+
+class Ter():
+    '''Estimate the Translation Error Rate (TER) (Snover et al., 2006)
+    Args:
+    param hypothesisfile: Path to the hypothesis document
+    param referencefile: Path to the reference document(s)
+    '''
+
+    def __init__(self) -> None:
+        pass
+
+    def get_ter(self, hypothesisfile, referencefile):
+
+        # Open test file and read translate
+        preds = []
+        with open(hypothesisfile) as pred:
+            for line in pred:
+                line = line.strip().replace(" ' ", "'").replace(" .", ".").replace(" ?", "?").replace(" !", "!")\
+                    .replace(' " ', '" ').replace(' "', '"').replace(" : ", ": ").replace(" ( ", " (")\
+                    .replace(" ) ", ") ").replace(" , ", ", ")
+                preds.append(line.strip().lower())
+
+        refs = []
+        with open(referencefile) as test:
+            for line in test:
+                line = line.strip().replace(" ' ", "'").replace(" .", ".").replace(" ?", "?").replace(" !", "!")\
+                    .replace(' " ', '" ').replace(' "', '"').replace(" : ", ": ").replace(" ( ", " (")\
+                    .replace(" ) ", ") ").replace(" , ", ", ")
+                refs.append(line.strip().lower())
+        refs = [refs]
+        result = ter.compute(predictions=preds, references=refs)
+        return f'TER SCORE: {result.score:.2f}'
