@@ -174,10 +174,9 @@ class Ter():
         refs = []
         with open(referencefile) as test:
             for line in test:
-                line = line.strip().replace(" ' ", "'").replace(" .", ".").replace(" ?", "?").replace(" !", "!")\
+                line = [line.strip().replace(" ' ", "'").replace(" .", ".").replace(" ?", "?").replace(" !", "!")\
                     .replace(' " ', '" ').replace(' "', '"').replace(" : ", ": ").replace(" ( ", " (")\
-                    .replace(" ) ", ") ").replace(" , ", ", ")
-                refs.append(line.strip().lower())
-        refs = [refs]
+                    .replace(" ) ", ") ").replace(" , ", ", ").strip().lower()]
+                refs.append(line)
         result = ter.compute(predictions=preds, references=refs)
         return f'TER SCORE: {result.score:.2f}'
