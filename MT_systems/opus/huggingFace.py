@@ -164,7 +164,6 @@ class OpusPivotTranslate:
                 translated = [tokenizer_1.decode(
                     t, skip_special_tokens=True) for t in translated]
                 translated = str(translated)[1:-1][1:-1]
-
                 translated = model_2.generate(
                     **tokenizer_2(translated, return_tensors="pt", padding=True))
                 translated = [tokenizer_2.decode(
@@ -172,5 +171,5 @@ class OpusPivotTranslate:
                 translated = str(translated)[1:-1][1:-1].replace(" ' ", "'").replace(" .", ".").replace(" ?", "?").replace(" !", "!")\
                     .replace(' " ', '" ').replace(' "', '"').replace(" : ", ": ").replace(" ( ", " (")\
                     .replace(" ) ", ") ").replace(" , ", ", ")
-                lines.append(str(translated)[1:-1][1:-1].strip().capitalize())
+                lines.append(translated.strip().capitalize())
             return preprocessor.writeTotxt(output, lines)
