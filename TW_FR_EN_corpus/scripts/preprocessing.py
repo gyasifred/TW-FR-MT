@@ -82,7 +82,7 @@ class Preprocessing:
 
     # normalize input twi sentence
     def normalize_twi(self, s):
-        s = self.removeStringAccent(s)
+        #s = self.removeStringAccent(s)
         s = s.lower()
         s = re.sub(r'([!.?])', r' \1', s)
         # s = re.sub(r'[^a-zA-Z.ƆɔɛƐ!?’]+', r' ', s)
@@ -91,7 +91,7 @@ class Preprocessing:
 
     # normalize input french sentence
     def normalize_FrEn(self, s):
-        s = self.removeStringAccent(s)
+        #s = self.removeStringAccent(s)
         s = s.lower()
         s = re.sub(r'([!.?])', r' \1', s)
         # s = re.sub(r'[^a-zA-Z.!?]+', r' ', s)
