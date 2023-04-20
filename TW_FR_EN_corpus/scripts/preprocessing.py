@@ -76,7 +76,7 @@ class Preprocessing:
 
     def removeStringAccent(self, s):
         return ''.join(
-            c for c in unicodedata.normalize('NFKC', s)
+            c for c in unicodedata.normalize('NFC', s)
             if unicodedata.category(c) != 'Mn'
         )
 
