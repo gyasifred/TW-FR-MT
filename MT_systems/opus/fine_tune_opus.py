@@ -119,8 +119,8 @@ if __name__ == "__main__":
 
     # Download model weights
     model = AutoModelForSeq2SeqLM.from_pretrained(model_checkpoint)
-    # device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    # model.to(device)
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    model.to(device)
 
     # instantiate a data_collator
     data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
