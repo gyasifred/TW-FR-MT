@@ -12,7 +12,6 @@ This repository includes:
 
 # Quickstart
 We provide a [tutorials](https://github.com/gyasifred/TW-FR-MT/tree/main/tutorials) which contains the complete pipeline from fine-tuning to evaluation.
-# Fine-tune OPUS-MT models
 
 # Citation
 BibTex
