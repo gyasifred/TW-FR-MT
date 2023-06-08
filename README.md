@@ -6,7 +6,7 @@ This repository includes:
 1. A script for fine-tuning a pre-trained OPUS-MT model ([fine_tune_opus.py](https://github.com/gyasifred/TW-FR-MT/blob/main/MT_systems/opus/fine_tune_opus.py)).
 2. Scripts for translations using fine-tuned OPUS-MT models ([opus_direct_translate.py](https://github.com/gyasifred/TW-FR-MT/blob/main/MT_systems/opus/opus_direct_translate.py), [opus_pivot_translate.py](https://github.com/gyasifred/TW-FR-MT/blob/main/MT_systems/opus/opus_pivot_translate.py)).
 3. Scripts to call the Google Translate API for translation ([googleAPIdirect_translate.py](https://github.com/gyasifred/TW-FR-MT/blob/main/MT_systems/Google_MT/googleAPIdirect_translate.py), [googleAPIpivot_translate.py](https://github.com/gyasifred/TW-FR-MT/blob/main/MT_systems/Google_MT/googleAPIpivot_translate.py)).
-4. Scripts for evaluating translation quality ([get_bleu.py](https://github.com/gyasifred/TW-FR-MT/blob/main/MT_systems/evalution_scripts/get_bleu.py), [get_sacrebleu.py](https://github.com/gyasifred/TW-FR-MT/blob/main/MT_systems/evalution_scripts/get_sacrebleu.py)).
+4. Scripts for evaluating translation quality ([get_bleu.py](https://github.com/gyasifred/TW-FR-MT/blob/main/MT_systems/evalution_scripts/get_bleu.py), [get_sacrebleu.py](https://github.com/gyasifred/TW-FR-MT/blob/main/MT_systems/evalution_scripts/get_sacrebleu.py), and [ter.py](https://github.com/gyasifred/TW-FR-MT/blob/main/MT_systems/evalution_scripts/ter.py)).
 5. [TW-FR-EN Corpus](https://github.com/gyasifred/TW-FR-MT/tree/main/TW_FR_EN_corpus).
 
 
