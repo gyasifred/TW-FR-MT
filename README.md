@@ -1,5 +1,5 @@
 # Twi-French Machine Translation
-French is a strategically and economically important language in the regions where the African language Twi is spoken. But only a very small proportion of Twi speakers in Ghana speak French. Since there are hardly any machine translation systems or parallel corpora between Twi and French that cover a modern and versatile vocabulary, our goal was to extend the modern [English-Akuapem Twi](https://zenodo.org/record/4432117#.Y_hwwdLP1Nj) corpus of [Azunre et al., 2021](https://arxiv.org/abs/2103.15625) with French and develop machine translation systems between Twi and French.
+French is a strategically and economically important language in the regions where the African language Twi is spoken. However, only a very small proportion of Twi speakers in Ghana speak French. The development of a Twi–French parallel corpus and corresponding machine translation applications would provide various advantages, including stimulating trade and job creation, supporting the Ghanaian diaspora in French-speaking nations, assisting French-speaking tourists and immigrants seeking medical care in Ghana, and facilitating numerous downstream natural language processing tasks. Since there are hardly any machine translation systems or parallel corpora between Twi and French that cover a modern and versatile vocabulary, our goal was to extend a modern Twi–English corpus with French and develop machine translation systems between Twi and French: Consequently, in this paper, we present our Twi–French corpus of 10,708 parallel sentences. Furthermore, we describe our machine translation experiments with this corpus. We investigated direct machine translation and cascading systems that use English as a pivot language. Our best Twi–French system is a direct state-of-the-art transformer-based machine translation system that achieves a BLEU score of 0.76. Our best French–Twi system, which is a cascading system that uses English as a pivot language, results in a BLEU score of 0.81. Both systems are fine tuned with our corpus, and our French–Twi system even slightly outperforms Google Translate on our test set by 7% relative.
 
 
 In this repository, we show how to fine-tune pre-trained [OPUS-MT](https://github.com/Helsinki-NLP/Opus-MT) models for Twi-to-French machine translation.
@@ -16,30 +16,18 @@ This repository includes:
 # Quickstart
 We provide a [tutorials](https://github.com/gyasifred/TW-FR-MT/tree/main/tutorials) which contains the complete pipeline from fine-tuning to evaluation.
 
-# Contributing
-Please first clone this repo to your local machine, using a command line tool such as Cygwin or Anaconda Prompt:
+# Citation
+BibTex
 
-```
-git clone https://github.com/gyasifred/TW-FR-MT
-```
-
-Create a branch for your contributions, and check it out:
-
-```
-git branch <your-branch-name>
-```
-
-```
-git checkout <your-branch-name>
-```
-
-Try to pick a branch name that describes your contribution.
-
-Write your code, test it and then push to your branch:
-
-```
-git push origin <your-branch-name>
-```
-
-Create a pull request using the online GitHub repo page.
-
+@Article{bdcc7020114,
+AUTHOR = {Gyasi, Frederick and Schlippe, Tim},
+TITLE = {Twi Machine Translation},
+JOURNAL = {Big Data and Cognitive Computing},
+VOLUME = {7},
+YEAR = {2023},
+NUMBER = {2},
+ARTICLE-NUMBER = {114},
+URL = {https://www.mdpi.com/2504-2289/7/2/114},
+ISSN = {2504-2289},
+DOI = {10.3390/bdcc7020114}
+}
