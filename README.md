@@ -40,7 +40,7 @@ If you find this project helpful, consider citing it:
 ```
 
 ## License
-This repository is open-source and licensed under the [MIT license](https://chat.openai.com/LICENSE].
+This repository is open-source and licensed under the [MIT license](https://github.com/gyasifred/TW-FR-MT/blob/main/LICENSE).
 
 ## About the Author
 Maintained by [Frederick Gyasi](https://github.com/gyasifred), passionate about language technologies and cross-cultural communication.
