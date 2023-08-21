@@ -37,9 +37,10 @@ If you find this project helpful, consider citing it:
     ISSN = {2504-2289},
     DOI = {10.3390/bdcc7020114}
 }
-License
+```
+## License
 This repository is open-source and licensed under the [MIT license](https://chat.openai.com/LICENSE].
 
-About the Author
+## About the Author
 Maintained by [Frederick Gyasi](https://github.com/gyasifred), passionate about language technologies and cross-cultural communication.
 
