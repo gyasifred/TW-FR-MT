@@ -142,16 +142,20 @@ documented in the [official FAQ](https://research.google.com/colaboratory/faq.ht
 
 Open [02_colab_translate.ipynb](../notebooks/02_colab_translate.ipynb), mount the
 authorized model folder, and set an actual `CHECKPOINT_RELATIVE` under
-`MODEL_ROOT`. The notebook writes an English-to-Twi registry to Drive after
-configuration. It refuses to overwrite a different registry and never copies or
+`MODEL_ROOT`. The configured model root is `/content/drive/MyDrive/MT`, with
+`OPUS-mt-tw-fr-tuned` selected for Twi-to-French translation. The notebook writes
+its route registry under `/content/twfr-registries` after configuration.
+It refuses to overwrite a different registry and never copies or
 uploads weights. `create_app(registry_path, model_root, device='auto')` returns a
 Gradio Blocks application. Both `LAUNCH_UI` and `ENABLE_PUBLIC_SHARE` default to
 false. `app.launch(share=ENABLE_PUBLIC_SHARE)` runs only after explicit opt-in;
 true sharing creates a public link. Keep sensitive text out of a shared app.
 
-Twi/French routes require your actual compatible checkpoint(s); the schema-only
-example does not supply them. For pivots, adjacent step languages must match.
-Do not relabel the default English-to-Twi export.
+The selected folder must contain complete, compatible model and tokenizer
+assets. The notebook explains separate conversion of trusted older `.bin`
+checkpoints to safetensors without modifying the originals. For other routes,
+select the actual compatible checkpoints and languages. For pivots, adjacent
+step languages must match; folder names alone do not verify model support.
 
 Colab is not 24/7 hosting. Free managed runtimes without positive compute units
 restrict using a web UI as the primary interface and may terminate such sessions.
