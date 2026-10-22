@@ -1,0 +1,8 @@
+{
+  "routes": [
+    {"id": "tw-fr-direct", "label": "Twi to French | Direct", "source_lang": "tw", "target_lang": "fr", "steps": [{"source_lang": "tw", "target_lang": "fr", "checkpoint": "tw-fr/final"}]},
+    {"id": "fr-tw-direct", "label": "French to Twi | Direct", "source_lang": "fr", "target_lang": "tw", "steps": [{"source_lang": "fr", "target_lang": "tw", "checkpoint": "fr-tw/final"}]},
+    {"id": "tw-fr-pivot", "label": "Twi to French | English pivot", "source_lang": "tw", "target_lang": "fr", "steps": [{"source_lang": "tw", "target_lang": "en", "checkpoint": "tw-en/final"}, {"source_lang": "en", "target_lang": "fr", "checkpoint": "en-fr/final"}]},
+    {"id": "fr-tw-pivot", "label": "French to Twi | English pivot", "source_lang": "fr", "target_lang": "tw", "steps": [{"source_lang": "fr", "target_lang": "en", "checkpoint": "fr-en/final"}, {"source_lang": "en", "target_lang": "tw", "checkpoint": "en-tw/final"}]}
+  ]
+}

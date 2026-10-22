@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "twfr-mt"
+version = "0.2.0"
+description = "Reproducible Twi-French translation training and checkpoint serving"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [{name = "Frederick Gyasi"}]
+dependencies = []
+
+[project.optional-dependencies]
+inference = ["torch>=2.6,<3", "transformers==4.57.1", "sentencepiece>=0.2,<0.3", "sacremoses>=0.1,<0.2", "safetensors>=0.6,<1"]
+train = ["torch>=2.6,<3", "transformers==4.57.1", "sentencepiece>=0.2,<0.3", "sacremoses>=0.1,<0.2", "safetensors>=0.6,<1", "datasets>=3,<5", "accelerate>=1,<2", "numpy>=1.26,<3", "sacrebleu>=2.5,<3"]
+app = ["gradio>=6.8,<7"]
+eval = ["sacrebleu>=2.5,<3"]
+dev = ["pytest>=8,<10", "ruff>=0.9,<1"]
+
+[project.scripts]
+twfr-mt = "twfr_mt.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["twfr_mt*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]

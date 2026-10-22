@@ -1,0 +1,11 @@
+.git
+.env
+models
+runs
+prepared
+TW_FR_EN_corpus
+legacy
+tests
+dist
+__pycache__
+*.egg-info

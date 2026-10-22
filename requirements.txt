@@ -1,9 +1,2 @@
-scikit-learn==1.0.2
-transformers
-sentencepiece
-evaluate==0.3.0
-googletrans==3.1.0a0
-accelerate
-sacrebleu==2.3.1
-nltk==3.7
-sacremoses==0.0.53
+# Colab training plus the optional Gradio interface.
+-e .[train,app]

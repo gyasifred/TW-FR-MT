@@ -1,0 +1,18 @@
+{
+  "base_model": "Helsinki-NLP/opus-mt-en-tw",
+  "source_lang": "en",
+  "target_lang": "tw",
+  "train_source": "/content/drive/MyDrive/TW-FR-MT/prepared/en-tw/train.source.txt",
+  "train_target": "/content/drive/MyDrive/TW-FR-MT/prepared/en-tw/train.target.txt",
+  "validation_source": "/content/drive/MyDrive/TW-FR-MT/prepared/en-tw/validation.source.txt",
+  "validation_target": "/content/drive/MyDrive/TW-FR-MT/prepared/en-tw/validation.target.txt",
+  "output_dir": "/content/drive/MyDrive/TW-FR-MT/runs/en-tw-example",
+  "epochs": 3,
+  "batch_size": 8,
+  "gradient_accumulation_steps": 2,
+  "learning_rate": 0.00002,
+  "max_source_length": 128,
+  "max_target_length": 128,
+  "seed": 42,
+  "resume_from_checkpoint": null
+}
