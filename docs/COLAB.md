@@ -48,12 +48,14 @@ from google.colab import drive
 drive.mount('/content/drive')
 ```
 
-Open both folders with your authorized account. Add a shortcut to My Drive if
-needed. Use Colab's file browser to choose each actual mounted folder/shortcut
-path. IDs and API names are not filesystem paths; do not infer folder names from
-IDs. Set `DATA_ROOT` manually. The model-output configuration starts with
-`DRIVE_ROOT = Path('/content/drive/MyDrive/TW-FR-MT')`; this is a configurable
-example, not a claim that the supplied model folder has that name.
+The inventory notebook uses the paths recorded in your saved Colab inventory:
+`DATA_ROOT = Path('/content/drive/MyDrive/data')` and
+`DRIVE_ROOT = Path('/content/drive/MyDrive/MT')`.
+Its selected checkpoint is `MT/OPUS-mt-tw-fr-tuned`. It checks the exact
+translation filenames: `train_en`, `train_twi`, `train_fr`; `val_en`, `val_tw`,
+`val_fr`; and `test_en`, `test_twi`, `test_fr`. These checks verify presence,
+not sentence alignment or checkpoint compatibility. Other notebooks have their
+own configuration cells; running the inventory does not configure them.
 `MODEL_ROOT` is the corresponding inference root. No `gdown`, public Drive links,
 or embedded credentials are used. Mounting lets notebook code access your Drive;
 review code before granting access. See the [Colab FAQ](https://research.google.com/colaboratory/faq.html).
