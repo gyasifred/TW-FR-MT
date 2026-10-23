@@ -1,0 +1,17 @@
+{
+  "routes": [
+    {
+      "id": "tw-fr",
+      "label": "Twi to French",
+      "source_lang": "tw",
+      "target_lang": "fr",
+      "steps": [
+        {
+          "source_lang": "tw",
+          "target_lang": "fr",
+          "checkpoint": "OPUS-mt-tw-fr-tuned"
+        }
+      ]
+    }
+  ]
+}

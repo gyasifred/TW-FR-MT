@@ -36,9 +36,12 @@ Provided Drive folders:
 - [Training data](https://drive.google.com/drive/folders/139FuEvqxcZzVglh0qNBIIDaXusjpgFuh)
 - [Model checkpoints](https://drive.google.com/drive/folders/13irIvPsqnryP_NJ5y6PneFKrQDJs5Qm6)
 
-Folder IDs do not establish mounted paths, filenames, model formats or language
-directions. Confirm those with authenticated inventory. These private folders
-have not been inspected or downloaded by the local application.
+All three notebooks use your recorded mounted folders:
+`/content/drive/MyDrive/data` and `/content/drive/MyDrive/MT`.
+Training uses `train_en`/`train_twi`, `val_en`/`val_tw`, and
+`test_en`/`test_twi`, preserving the existing split membership. Translation
+uses `MT/OPUS-mt-tw-fr-tuned`. File presence does not establish semantic
+alignment or checkpoint language compatibility; verify these before use.
 
 See [Colab setup](docs/COLAB.md). A GitHub clone in Colab only contains changes
 already pushed to GitHub; alternatively upload the source bundle produced by
@@ -50,18 +53,20 @@ Use Python 3.10 or newer; the Docker image uses Python 3.11.
 
 ```bash
 python -m pip install -e ".[inference,app]"
-twfr-mt serve --registry configs/models.example.json --model-root /path/to/checkpoints
+twfr-mt serve --registry configs/models.drive.json --model-root /content/drive/MyDrive/MT
 ```
 
-Edit the registry to match actual checkpoint directories below your model root.
-The example directory names are placeholders, not supplied trained models.
+This command uses your mounted Colab Drive and known checkpoint directory.
+For local or container serving, stage the export and supply that environment's
+model root. `configs/models.example.json` remains a schema example for other
+direct/pivot routes; it is not the configured Drive registry.
 No checkpoint is downloaded or loaded until translation is requested. Models
 must be encoder-decoder Hugging Face exports with their tokenizer files.
 
 For a trusted older `.bin` export, convert it explicitly:
 
 ```bash
-twfr-mt export-checkpoint --source /trusted/old-model --destination /models/tw-fr/final --allow-legacy-bin
+twfr-mt export-checkpoint --source /content/drive/MyDrive/MT/OPUS-mt-tw-fr-tuned --destination /content/drive/MyDrive/MT/OPUS-mt-tw-fr-tuned-safe --allow-legacy-bin
 ```
 
 The server defaults to localhost with sharing disabled. For authenticated
@@ -73,12 +78,15 @@ or sent to third-party translation APIs. Review hosting/proxy logs separately.
 
 ```bash
 python -m pip install -e ".[train]"
-twfr-mt prepare --source source.txt --target target.txt --output-dir prepared/pair
+# After the training notebook validates and saves the supplied splits:
 twfr-mt train --config configs/train.example.json
 twfr-mt evaluate --predictions predictions.txt --references references.txt
 ```
 
-Adapt the training config's paths, model and language pair before execution.
+The training config uses the notebook's validated files under
+`/content/drive/MyDrive/MT/prepared_data/en-tw-run-001` and saves to
+`/content/drive/MyDrive/MT/runs/en-tw-run-001`. Use either the notebook's training
+cell or the CLI for a fresh run, not both against the same output directory.
 The example English-to-Twi base model does not establish compatibility with
 French-to-Twi or Twi-to-French fine-tuning. Multilingual models may require
 explicit source/target tokenizer language tokens or source prefixes.

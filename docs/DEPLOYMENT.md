@@ -79,9 +79,11 @@ that relative path in the registry. Edit and review
 `configs/models.example.json` for the tree you actually staged; example registry
 entries do not prove corresponding model weights exist.
 
-For a direct Twi-to-French checkpoint, the route/step languages are `tw` and `fr`
-with, for example, `checkpoint: "tw-fr/final"`. Supply that real compatible model
-yourself. For pivots, configure ordered steps and a real checkpoint for each leg;
+For your recorded Twi-to-French directory, use `configs/models.drive.json`,
+whose checkpoint is `OPUS-mt-tw-fr-tuned`. In Colab its model root is
+`/content/drive/MyDrive/MT`; for deployment, stage that directory below `/models`
+and pass `/models` as the root. Confirm the saved model's actual language
+direction and complete export before use. For pivots, configure ordered steps and a real checkpoint for each leg;
 adjacent languages must match. Tokenizer codes and prefixes must come from those
 models, not invented Twi/French tokens. The primary
 [`Helsinki-NLP/opus-mt-en-tw` model card](https://huggingface.co/Helsinki-NLP/opus-mt-en-tw)

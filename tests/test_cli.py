@@ -1,6 +1,22 @@
 import pytest
 
+from twfr_mt import cli
 from twfr_mt.cli import main, serve
+
+
+@pytest.mark.parametrize("use_environment", [False, True])
+def test_serving_paths_use_drive_defaults_or_explicit_environment(monkeypatch, use_environment):
+    monkeypatch.delenv("TWFR_REGISTRY", raising=False)
+    monkeypatch.delenv("TWFR_MODEL_ROOT", raising=False)
+    if use_environment:
+        monkeypatch.setenv("TWFR_REGISTRY", "/runtime/models.json")
+        monkeypatch.setenv("TWFR_MODEL_ROOT", "/models")
+    calls = []
+    monkeypatch.setattr(cli, "serve", lambda *args: calls.append(args))
+    main(["serve"])
+    expected = (("/runtime/models.json", "/models") if use_environment else
+                ("configs/models.drive.json", "/content/drive/MyDrive/MT"))
+    assert calls[0][:2] == expected
 
 
 def test_cli_help_does_not_import_training_dependencies(capsys):

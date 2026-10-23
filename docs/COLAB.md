@@ -60,13 +60,31 @@ own configuration cells; running the inventory does not configure them.
 or embedded credentials are used. Mounting lets notebook code access your Drive;
 review code before granting access. See the [Colab FAQ](https://research.google.com/colaboratory/faq.html).
 
+### Path Inventory
+
+| Maintained file | Configured storage |
+| --- | --- |
+| `00_drive_inventory.ipynb` | All nine recorded translation files under `MyDrive/data`; checkpoint under `MyDrive/MT` |
+| `01_colab_train.ipynb` | Same roots; English/Twi supplied splits; outputs under `MT/runs/en-tw-run-001` |
+| `02_colab_translate.ipynb` | `MT/OPUS-mt-tw-fr-tuned` |
+| `configs/train.example.json` | Validated splits under `MT/prepared_data/en-tw-run-001`; same training output directory |
+| `configs/models.drive.json` | `OPUS-mt-tw-fr-tuned`, relative to the mounted `MT` root |
+| `app.py` / `twfr-mt serve` | Drive registry and `/content/drive/MyDrive/MT` by default; CLI/environment overrides remain supported |
+
+The `/content/TW-FR-MT` checkout and `/content/twfr-inputs` and
+`/content/twfr-splits` workspaces are local Colab paths, not Drive folders.
+Container `/models` paths remain deployment mount points. Archived `legacy/`
+files and `configs/models.example.json` are historical/schema examples, not
+configured Colab entry points. No checkpoint is assumed for an unverified
+reverse or pivot translation route.
+
 ## Train from Your Drive Data
 
-Open [01_colab_train.ipynb](../notebooks/01_colab_train.ipynb). Choose actual
-UTF-8 parallel-text filenames from the authenticated inventory. `source_en.txt`
-and `target_tw.txt` are placeholders, not observed Drive filenames. Set
-`DATA_SELECTION_CONFIRMED = True` only after verifying paths, sentence alignment,
-and language direction. Existence checks and strict data parsing stop on missing,
+Open [01_colab_train.ipynb](../notebooks/01_colab_train.ipynb). It uses
+`/content/drive/MyDrive/data/train_en` and `train_twi`, `val_en` and `val_tw`,
+and `test_en` and `test_twi` for English-to-Twi training. French filenames
+are also configured for experiments with a compatible model. Verify sentence
+alignment and language direction before training. Existence checks and strict data parsing stop on missing,
 blank, empty, or unequal inputs. Metadata alone cannot establish alignment.
 
 The primary model is configurable Marian
@@ -78,10 +96,9 @@ language codes/prefixes only where that model requires them; never invent `tw` o
 `fr` special tokens. The default Marian path uses null tokenizer language codes
 and an empty source prefix.
 
-Selected Drive inputs are copied to `/content/twfr-inputs/<RUN_NAME>` before
-preparation to reduce Drive I/O. `prepare_splits(source, target, outputdir,
-seed=42, validation_fraction=0.1, test_fraction=0.1)` returns a manifest dictionary
-and writes `manifest.json` plus:
+Selected Drive inputs are copied to `/content/twfr-inputs/en-tw-run-001` to
+reduce Drive I/O. The notebook preserves supplied train/validation/test membership
+and validates all three splits without resplitting. It writes `manifest.json` plus:
 
 ```text
 train.source.txt       train.target.txt
@@ -89,16 +106,17 @@ validation.source.txt  validation.target.txt
 test.source.txt        test.target.txt
 ```
 
-Preparation normalizes text, deduplicates cleaned pairs and groups normalized
-source texts before splitting. Fractions apply to source groups, so actual row
-fractions can differ. The notebook validates source disjointness and alignment
-without using test predictions or scores for decisions. It saves these prepared
-splits and the manifest to `DRIVE_ROOT/prepared_data/<RUN_NAME>` without replacing
-different saved data. Local corpus copies and prepared files contain private text.
+Parsing checks row counts and nonblank text; the audit rejects exact duplicate
+pairs and cross-split normalized-source overlap. Neither check proves semantic
+alignment. No rows are silently removed or reassigned. Input hashes and split
+counts are saved to `/content/drive/MyDrive/MT/prepared_data/en-tw-run-001`
+without replacing different saved data. Local corpus copies and validated files
+contain private text. Test predictions or scores are not used for development.
 
 The optional, secondary bundled example uses aligned
 `TW_FR_EN_corpus/data/total/total_en.txt` and `total_tw.txt`, each with 10,708
-lines. Explicitly select those paths in the notebook to use it instead of Drive.
+lines. Use the CLI `twfr-mt prepare` to create new grouped splits from total
+files when deliberately running that separate experiment.
 Never use legacy split files for new training: shipped `test_fr.txt` has 1,070
 lines versus 1,071 for English/Twi. The legacy audit found normalized source-key
 overlaps of 45 train/validation, 40 train/test and 2 validation/test. These are
