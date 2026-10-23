@@ -1,184 +1,184 @@
-# Colab Workflow
+# Colab Training and Inference
 
-These notebooks are interactive workflows, not evidence that training has run.
-Private Drive contents have not been inspected in this development session.
-No GPU availability, training duration, translation quality, or successful run is promised.
+The Colab notebooks support authenticated corpus access, reproducible
+fine-tuning, and interactive translation. Google Drive provides persistent
+storage; local Colab directories provide temporary working space.
 
-## Get the Updated Code First
+## Environment
 
-Commit and push the complete updated working tree to your GitHub repository before
-using Colab. The original GitHub repository does not contain local changes until
-they are pushed. Set `REPO_URL` to your credential-free HTTPS GitHub URL and,
-optionally, `BRANCH` to the branch containing the package and notebooks.
-Alternatively, upload the complete updated project to `/content/TW-FR-MT` before
-running setup. Uploading just a notebook is insufficient.
+Open the notebooks from the [repository](https://github.com/gyasifred/TW-FR-MT)
+and execute cells in order. Training benefits from a GPU runtime. Availability,
+memory capacity, and session duration depend on the account and runtime.
 
-Setup clones only when `/content/TW-FR-MT` does not exist. It never pulls, resets,
-switches branches, or overwrites an existing checkout/upload. A requested branch
-mismatch stops setup for manual resolution. Check the printed commit ID.
-The notebooks install `pip -e '.[train,app]'` using the project's
-`transformers==4.57.1` pin in `pyproject.toml`, not Transformers v5.
-Restart the runtime after installation if previously imported libraries conflict,
-then rerun setup. Do not put credentials in clone URLs or notebook cells.
+Notebook setup uses `/content/TW-FR-MT` as the source checkout and installs
+`.[train,app]`. Existing checkouts are retained rather than overwritten or
+automatically updated. The displayed commit identifies the source revision for
+the session. Restart the runtime after installation if imported libraries
+conflict with the project's Transformers 4.57.1 dependency.
 
-## Inventory and Mount Drive
-
-Run [00_drive_inventory.ipynb](../notebooks/00_drive_inventory.ipynb) first.
-It uses standard Colab Google authorization, `google.auth.default()` and Drive v3
-`files.get` / paginated `files.list` to report metadata only for these folders:
-
-| Role | Exact ID | Link |
-| --- | --- | --- |
-| Training data (`DATA_FOLDER_ID`) | `139FuEvqxcZzVglh0qNBIIDaXusjpgFuh` | [Data folder](https://drive.google.com/drive/folders/139FuEvqxcZzVglh0qNBIIDaXusjpgFuh?usp=drive_link) |
-| Model outputs (`MODEL_FOLDER_ID`) | `13irIvPsqnryP_NJ5y6PneFKrQDJs5Qm6` | [Model folder](https://drive.google.com/drive/folders/13irIvPsqnryP_NJ5y6PneFKrQDJs5Qm6?usp=drive_link) |
-
-The inventory does not read file contents or download weights. It lists direct
-children, including names, IDs and shortcut metadata. Inspect nested folders
-explicitly if necessary. A failed request needs account-access/API checks; there
-is no public download fallback. Names and IDs may themselves be sensitive: clear
-inventory outputs before sharing. See the official
-[files.get](https://developers.google.com/workspace/drive/api/reference/rest/v3/files/get)
-and [files.list](https://developers.google.com/workspace/drive/api/reference/rest/v3/files/list)
-references for these metadata operations.
-
-Each notebook mounts Drive explicitly:
+Authentication uses standard Google authorization and Drive mounting:
 
 ```python
 from google.colab import drive
 drive.mount('/content/drive')
 ```
 
-The inventory notebook uses the paths recorded in your saved Colab inventory:
-`DATA_ROOT = Path('/content/drive/MyDrive/data')` and
-`DRIVE_ROOT = Path('/content/drive/MyDrive/MT')`.
-Its selected checkpoint is `MT/OPUS-mt-tw-fr-tuned`. It checks the exact
-translation filenames: `train_en`, `train_twi`, `train_fr`; `val_en`, `val_tw`,
-`val_fr`; and `test_en`, `test_twi`, `test_fr`. These checks verify presence,
-not sentence alignment or checkpoint compatibility. Other notebooks have their
-own configuration cells; running the inventory does not configure them.
-`MODEL_ROOT` is the corresponding inference root. No `gdown`, public Drive links,
-or embedded credentials are used. Mounting lets notebook code access your Drive;
-review code before granting access. See the [Colab FAQ](https://research.google.com/colaboratory/faq.html).
+Credentials belong in the authorization flow, not notebook cells or repository
+URLs. Notebook outputs can contain sensitive file metadata and should be
+cleared before public distribution.
 
-### Path Inventory
+## Storage Configuration
 
-| Maintained file | Configured storage |
+| Resource | Mounted location |
 | --- | --- |
-| `00_drive_inventory.ipynb` | All nine recorded translation files under `MyDrive/data`; checkpoint under `MyDrive/MT` |
-| `01_colab_train.ipynb` | Same roots; English/Twi supplied splits; outputs under `MT/runs/en-tw-run-001` |
-| `02_colab_translate.ipynb` | `MT/OPUS-mt-tw-fr-tuned` |
-| `configs/train.example.json` | Validated splits under `MT/prepared_data/en-tw-run-001`; same training output directory |
-| `configs/models.drive.json` | `OPUS-mt-tw-fr-tuned`, relative to the mounted `MT` root |
-| `app.py` / `twfr-mt serve` | Drive registry and `/content/drive/MyDrive/MT` by default; CLI/environment overrides remain supported |
+| [Training corpora](https://drive.google.com/drive/folders/139FuEvqxcZzVglh0qNBIIDaXusjpgFuh) | `/content/drive/MyDrive/data` |
+| [Model artifacts](https://drive.google.com/drive/folders/13irIvPsqnryP_NJ5y6PneFKrQDJs5Qm6) | `/content/drive/MyDrive/MT` |
+| Inference checkpoint | `/content/drive/MyDrive/MT/OPUS-mt-tw-fr-tuned` |
+| Validated training inputs | `/content/drive/MyDrive/MT/prepared_data/en-tw-run-001` |
+| Training output | `/content/drive/MyDrive/MT/runs/en-tw-run-001` |
 
-The `/content/TW-FR-MT` checkout and `/content/twfr-inputs` and
-`/content/twfr-splits` workspaces are local Colab paths, not Drive folders.
-Container `/models` paths remain deployment mount points. Archived `legacy/`
-files and `configs/models.example.json` are historical/schema examples, not
-configured Colab entry points. No checkpoint is assumed for an unverified
-reverse or pivot translation route.
+The inventory notebook lists folder metadata and direct children without
+reading corpus contents or loading model weights. It also checks the configured
+file and checkpoint paths. Each notebook contains its own configuration cell.
 
-## Train from Your Drive Data
+### Corpus Files
 
-Open [01_colab_train.ipynb](../notebooks/01_colab_train.ipynb). It uses
-`/content/drive/MyDrive/data/train_en` and `train_twi`, `val_en` and `val_tw`,
-and `test_en` and `test_twi` for English-to-Twi training. French filenames
-are also configured for experiments with a compatible model. Verify sentence
-alignment and language direction before training. Existence checks and strict data parsing stop on missing,
-blank, empty, or unequal inputs. Metadata alone cannot establish alignment.
+These filenames are relative to `/content/drive/MyDrive/data`:
 
-The primary model is configurable Marian
-[`Helsinki-NLP/opus-mt-en-tw`](https://huggingface.co/Helsinki-NLP/opus-mt-en-tw),
-whose publisher model card specifies **English to Twi**. Select English source
-and Twi target data. It is not a supported Twi/French model merely because labels
-are changed. Other pairs require a compatible model and data. Use real tokenizer
-language codes/prefixes only where that model requires them; never invent `tw` or
-`fr` special tokens. The default Marian path uses null tokenizer language codes
-and an empty source prefix.
+| Partition | English | Twi | French |
+| --- | --- | --- | --- |
+| Training | `train_en` | `train_twi` | `train_fr` |
+| Validation | `val_en` | `val_tw` | `val_fr` |
+| Test | `test_en` | `test_twi` | `test_fr` |
 
-Selected Drive inputs are copied to `/content/twfr-inputs/en-tw-run-001` to
-reduce Drive I/O. The notebook preserves supplied train/validation/test membership
-and validates all three splits without resplitting. It writes `manifest.json` plus:
+The Twi validation filename is `val_tw`; its training and test filenames use
+`twi`. File presence establishes neither sentence alignment nor language
+compatibility.
+
+## Training
+
+[01_colab_train.ipynb](../notebooks/01_colab_train.ipynb) defaults to English-to-Twi
+fine-tuning with `Helsinki-NLP/opus-mt-en-tw`. It selects the English and Twi
+columns from the corpus table. A different translation direction requires
+compatible data, model, tokenizer settings, and any model-specific prefixes.
+
+### Input Validation
+
+The notebook copies the selected files to
+`/content/twfr-inputs/en-tw-run-001`, verifies the copies against input hashes,
+and preserves the supplied partition membership. It rejects empty files, blank
+rows, unequal parallel lengths, duplicate exact pairs, and cross-partition
+normalized-source overlap. Semantic alignment requires inspection beyond these
+structural checks.
+
+Validated files are stored under `/content/twfr-splits/en-tw-run-001`
+and persisted to the configured Drive preparation directory:
 
 ```text
 train.source.txt       train.target.txt
 validation.source.txt  validation.target.txt
 test.source.txt        test.target.txt
+manifest.json
 ```
 
-Parsing checks row counts and nonblank text; the audit rejects exact duplicate
-pairs and cross-split normalized-source overlap. Neither check proves semantic
-alignment. No rows are silently removed or reassigned. Input hashes and split
-counts are saved to `/content/drive/MyDrive/MT/prepared_data/en-tw-run-001`
-without replacing different saved data. Local corpus copies and validated files
-contain private text. Test predictions or scores are not used for development.
+The manifest records language direction, input paths, hashes, partition counts,
+and the partition-preservation policy. Existing saved inputs must match before
+reuse. No rows are silently removed or reassigned.
 
-The optional, secondary bundled example uses aligned
-`TW_FR_EN_corpus/data/total/total_en.txt` and `total_tw.txt`, each with 10,708
-lines. Use the CLI `twfr-mt prepare` to create new grouped splits from total
-files when deliberately running that separate experiment.
-Never use legacy split files for new training: shipped `test_fr.txt` has 1,070
-lines versus 1,071 for English/Twi. The legacy audit found normalized source-key
-overlaps of 45 train/validation, 40 train/test and 2 validation/test. These are
-archival inputs; originals remain unchanged. Do not silently truncate, pad,
-repair, or combine their test data. Rebuild from aligned total files instead.
+### Model Fitting
 
-`TrainingConfig` receives only train/validation paths, plus model/language,
-tokenizer, optimization, output and resume settings. Start with
-`run_training(config)`. Use validation for development. Freeze the model and
-decoding settings before generating final held-out test predictions. Do not tune
-on test scores. The CLI equivalent uses your own reviewed configuration:
+`TrainingConfig` specifies the base model, language pair, tokenizer settings,
+training and validation files, optimization parameters, and output directory.
+The notebook calls `run_training(config)` to start fine-tuning. Alternatively,
+after input preparation, run:
 
 ```bash
 twfr-mt train --config configs/train.example.json
 ```
 
-## Persistence and Resume
+Use one training entry point for a fresh output directory. Validation data
+support checkpoint and hyperparameter selection. Test data are excluded from
+Trainer inputs and reserved for final evaluation.
 
-Choose a unique `RUN_NAME`. Training writes directly to
-`DRIVE_ROOT/runs/<RUN_NAME>`, with full `checkpoint-<step>` directories and a
-`final` model/tokenizer export on completion. Inspect saved files rather than
-assuming interrupted writes are complete. Preserve `run_config.json`,
-`training_summary.json`, and prepared-data manifests for provenance.
+### Checkpoints and Resume
 
-To resume, use a fresh runtime, select the same paths, model revision, data and
-settings, and set `RESUME_FROM_CHECKPOINT` to the explicit full
-`RUN_DIR/checkpoint-<step>` path. Full Trainer state includes optimizer, scheduler,
-RNG and trainer state, not just model weights. The runner checks provenance and
-rejects a changed dataset/configuration, an incomplete checkpoint, a nonempty
-fresh run, or an existing `final` export. Resolve any stale lock only after
-confirming no training process remains. A completed final export is for inference,
-not full-state resume. If rerunning preparation in the same runtime, inspect
-existing local directories before removing them manually; the notebook will not
-overwrite them.
+The run directory contains full `checkpoint-<step>` directories, a completed
+`final` export, `run_config.json`, and `training_summary.json`. Input manifests
+are stored separately under `MT/prepared_data/en-tw-run-001`.
 
-Colab runtimes are temporary, resources vary, and idle/runtime limits apply.
-Drive I/O can be slow, interrupted or quota-limited; local input copies reduce
-small reads but checkpoint writes still use Drive. Keep adequate Drive space and
-verify important artifacts before ending a session. These constraints are
-documented in the [official FAQ](https://research.google.com/colaboratory/faq.html).
+To resume an interrupted experiment, select its original configuration and set
+`RESUME_FROM_CHECKPOINT` to a complete checkpoint directory within the run.
+Resume checks require model weights, optimizer, scheduler, random-number and
+Trainer state, together with compatible data and configuration provenance.
+Some training-duration and runtime settings can be changed where permitted by
+the runner. A completed `final` export is an inference artifact, not a
+full-state resume checkpoint.
 
-## Translate Interactively
+An existing final export or a nonempty fresh-run directory is not overwritten.
+Before resolving a stale `.training.lock`, establish that no associated
+training process is active. A fresh Colab runtime avoids collisions with
+existing temporary input directories.
 
-Open [02_colab_translate.ipynb](../notebooks/02_colab_translate.ipynb), mount the
-authorized model folder, and set an actual `CHECKPOINT_RELATIVE` under
-`MODEL_ROOT`. The configured model root is `/content/drive/MyDrive/MT`, with
-`OPUS-mt-tw-fr-tuned` selected for Twi-to-French translation. The notebook writes
-its route registry under `/content/twfr-registries` after configuration.
-It refuses to overwrite a different registry and never copies or
-uploads weights. `create_app(registry_path, model_root, device='auto')` returns a
-Gradio Blocks application. Both `LAUNCH_UI` and `ENABLE_PUBLIC_SHARE` default to
-false. `app.launch(share=ENABLE_PUBLIC_SHARE)` runs only after explicit opt-in;
-true sharing creates a public link. Keep sensitive text out of a shared app.
+### Alternative Corpus Preparation
 
-The selected folder must contain complete, compatible model and tokenizer
-assets. The notebook explains separate conversion of trusted older `.bin`
-checkpoints to safetensors without modifying the originals. For other routes,
-select the actual compatible checkpoints and languages. For pivots, adjacent
-step languages must match; folder names alone do not verify model support.
+For an unpartitioned aligned corpus, `twfr-mt prepare` creates source-grouped
+partitions with deterministic seeded allocation, pair deduplication, and hashed
+provenance. This is separate from the notebook's partition-preservation workflow.
+The bundled archival splits require auditing before reuse because they contain
+unequal language-specific test counts and cross-partition source overlap.
 
-Colab is not 24/7 hosting. Free managed runtimes without positive compute units
-restrict using a web UI as the primary interface and may terminate such sessions.
-Do not bypass restrictions or use keepalive workarounds. Review the
-[Colab FAQ](https://research.google.com/colaboratory/faq.html) and use the
-[deployment workflow](DEPLOYMENT.md) for a hosted application.
+## Interactive Inference
+
+[02_colab_translate.ipynb](../notebooks/02_colab_translate.ipynb) selects
+`/content/drive/MyDrive/MT/OPUS-mt-tw-fr-tuned` for Twi-to-French translation.
+The checkpoint must contain compatible configuration, tokenizer, and weight
+files. Its directory name alone does not establish the trained language pair.
+
+The notebook creates a route registry under `/content/twfr-registries` and
+constructs a Gradio application. `LAUNCH_UI` and `ENABLE_PUBLIC_SHARE` default
+to `False`; application launch and public sharing require explicit selection.
+The application translates each message independently.
+
+Trusted legacy `pytorch_model.bin` checkpoints require explicit conversion to
+a separate safetensors export before use with the default inference loader:
+
+```python
+from twfr_mt.export import export_checkpoint
+
+export_checkpoint(
+    '/content/drive/MyDrive/MT/OPUS-mt-tw-fr-tuned',
+    '/content/drive/MyDrive/MT/OPUS-mt-tw-fr-tuned-safe',
+    allow_legacy_bin=True,
+)
+```
+
+Select the converted directory in `CHECKPOINT_RELATIVE` after conversion.
+The source checkpoint is retained and an existing destination is not
+overwritten. Only convert trusted artifacts.
+
+## Operational Limits
+
+Colab working directories are temporary. Drive persistence does not eliminate
+interrupted writes, storage limits, or incomplete checkpoint risks; verify
+artifacts before ending a session. Local input copies reduce repeated Drive
+reads, while checkpoint writes still depend on Drive availability.
+
+Public interface links expose a running application and are unsuitable for
+sensitive text without appropriate access controls. Colab is not a persistent
+hosting service. Consult the [official Colab FAQ](https://research.google.com/colaboratory/faq.html)
+for runtime and web-interface restrictions, and use the
+[deployment guide](DEPLOYMENT.md) for hosted inference.
+
+## Configuration Reference
+
+| Entry point | Configuration |
+| --- | --- |
+| Inventory notebook | All nine corpus files and the selected checkpoint |
+| Training notebook | English/Twi inputs, validated partitions, and run directory |
+| Inference notebook | Twi-to-French checkpoint and temporary route registry |
+| `configs/train.example.json` | Persisted validated English/Twi files and training output |
+| `configs/models.drive.json` | `OPUS-mt-tw-fr-tuned`, relative to the `MT` model root |
+| `app.py` / `twfr-mt serve` | Drive registry and model root; command-line and environment overrides supported |
+
+Container paths such as `/models` are deployment mount points, not Colab Drive
+paths. `configs/models.example.json` illustrates additional route structures.

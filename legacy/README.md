@@ -1,10 +1,16 @@
-# Archived research scripts
+# Research Archive
 
-The original OPUS, Google Translate, corpus-preparation and metric scripts,
-and the historical tutorial, are preserved here unchanged for provenance.
-They are not installed, imported, or used by the new application. Their old
-relative imports and dependencies may not work in modern runtimes.
+This directory contains the earlier OPUS translation, Google Translate,
+corpus-preparation, and metric scripts, together with their accompanying
+tutorial. These materials provide historical research context and are separate
+from the maintained `twfr_mt` package.
 
-Use the `twfr-mt` commands and current `notebooks/` instead. Corpus files
-remain in their original locations and have not been rewritten. The new
-runtime does not silently send user text to Google Translate or another API.
+Archived scripts may depend on earlier library versions, directory layouts,
+external services, or credentials. They are not installed or imported by the
+maintained application. Reproducing an archived experiment requires reviewing
+its dependencies, data partitions, language direction, and evaluation protocol.
+
+For current training and inference, use the [Colab notebooks](../notebooks/)
+and [technical documentation](../docs/COLAB.md). The maintained inference
+service loads local model exports rather than forwarding translation requests
+to external translation APIs.

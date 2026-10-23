@@ -1,145 +1,164 @@
 # Twi-French Machine Translation
 
-## Overview
+A research software framework for training, evaluating, and serving
+sequence-to-sequence machine translation models. The framework supports direct
+translation and two-stage translation through English, with checkpoints stored
+on Google Drive and a Gradio interface for interactive inference. Each input
+is translated independently; conversation history is not used as model context.
 
-Train sequence-to-sequence translation models in Google Colab, retain
-checkpoints on Google Drive, and serve direct or English-pivot translation
-through a Gradio conversation interface. Each message is translated
-independently: this is machine translation, not an instruction-following chatbot.
+## Architecture
 
-The maintained implementation is `twfr_mt/`. Original research scripts and
-their historical tutorial are retained under [legacy/](legacy/README.md).
-Original corpus files are unchanged.
+The `twfr_mt` package separates corpus preparation, model training, evaluation,
+checkpoint loading, and application serving. Training uses Hugging Face
+`Seq2SeqTrainer`. Inference loads local encoder-decoder model exports through
+explicit language-pair routes. A bounded cache limits the number of models
+retained by the translation service.
 
-## Features
+| Component | Responsibility |
+| --- | --- |
+| `twfr_mt/data.py` | Parallel-text parsing, partition validation, grouped splitting, and file provenance |
+| `twfr_mt/training.py` | Fine-tuning, resumable training, and model export |
+| `twfr_mt/inference.py` | Local checkpoint loading and direct or English-pivot translation |
+| `twfr_mt/metrics.py` | SacreBLEU, chrF, and translation edit rate (TER) evaluation |
+| `twfr_mt/ui.py` | Gradio translation interface |
+| `twfr_mt/cli.py` | Command-line preparation, training, evaluation, and serving |
 
-- Strict UTF-8 aligned-corpus validation with accent/case preservation.
-- Reproducible source-grouped splits, deduplication and hashed data provenance.
-- Seq2SeqTrainer training with dynamic padding, GPU-aware precision and full-state resume.
-- Local safetensors checkpoint loading, bounded model caching and direct/pivot routes.
-- Case-sensitive SacreBLEU, chrF and TER with metric signatures.
-- Local-first Gradio serving; authentication or explicit consent for remote sharing.
-- A non-root CPU Docker image and deployment instructions.
+## Installation
 
-## Quickstart Guide
-
-### Colab and Google Drive
-
-Follow the notebooks in order:
-
-1. [Drive inventory](notebooks/00_drive_inventory.ipynb): authenticate and identify actual files.
-2. [Train and resume](notebooks/01_colab_train.ipynb): validate aligned data, prepare splits, train and export.
-3. [Load and translate](notebooks/02_colab_translate.ipynb): configure existing checkpoints and launch the UI.
-
-Provided Drive folders:
-
-- [Training data](https://drive.google.com/drive/folders/139FuEvqxcZzVglh0qNBIIDaXusjpgFuh)
-- [Model checkpoints](https://drive.google.com/drive/folders/13irIvPsqnryP_NJ5y6PneFKrQDJs5Qm6)
-
-All three notebooks use your recorded mounted folders:
-`/content/drive/MyDrive/data` and `/content/drive/MyDrive/MT`.
-Training uses `train_en`/`train_twi`, `val_en`/`val_tw`, and
-`test_en`/`test_twi`, preserving the existing split membership. Translation
-uses `MT/OPUS-mt-tw-fr-tuned`. File presence does not establish semantic
-alignment or checkpoint language compatibility; verify these before use.
-
-See [Colab setup](docs/COLAB.md). A GitHub clone in Colab only contains changes
-already pushed to GitHub; alternatively upload the source bundle produced by
-`python scripts/package_colab.py` and extract it under `/content`.
-
-### Local Serving
-
-Use Python 3.10 or newer; the Docker image uses Python 3.11.
+Python 3.10 or later is required. Install the dependency group for the intended
+workload:
 
 ```bash
-python -m pip install -e ".[inference,app]"
+python -m pip install -e ".[train,app]"
+```
+
+Inference-only environments can use `.[inference,app]`. The dependency
+specification in [pyproject.toml](pyproject.toml) pins Transformers to version
+4.57.1.
+
+## Google Colab
+
+The notebooks provide three entry points:
+
+1. [Drive inventory](notebooks/00_drive_inventory.ipynb): authenticate and inspect available files.
+2. [Training](notebooks/01_colab_train.ipynb): validate the supplied partitions, fine-tune, and export a model.
+3. [Translation](notebooks/02_colab_translate.ipynb): load an existing checkpoint and construct the interface.
+
+| Resource | Configured location |
+| --- | --- |
+| [Parallel corpora](https://drive.google.com/drive/folders/139FuEvqxcZzVglh0qNBIIDaXusjpgFuh) | `/content/drive/MyDrive/data` |
+| [Model storage](https://drive.google.com/drive/folders/13irIvPsqnryP_NJ5y6PneFKrQDJs5Qm6) | `/content/drive/MyDrive/MT` |
+| Twi-to-French inference checkpoint | `/content/drive/MyDrive/MT/OPUS-mt-tw-fr-tuned` |
+| Training output | `/content/drive/MyDrive/MT/runs/en-tw-run-001` |
+
+The training notebook defaults to English-to-Twi fine-tuning with
+`Helsinki-NLP/opus-mt-en-tw`. The inference notebook selects the separate
+Twi-to-French checkpoint. Each experiment requires a compatible base model,
+tokenizer, source language, and target language.
+
+See [Colab Training and Inference](docs/COLAB.md) for the complete workflow.
+
+## Data and Experimental Design
+
+Parallel corpora consist of UTF-8 source and target files with one aligned
+sentence per line. Parsing preserves case and accents while normalizing Unicode
+and whitespace. Empty inputs, blank rows, and unequal line counts are rejected.
+Semantic alignment requires separate inspection.
+
+The Colab workflow preserves the supplied training, validation, and test
+partitions. It rejects duplicate sentence pairs and normalized-source overlap
+across partitions. For experiments beginning with an unpartitioned corpus, the
+preparation command groups equivalent source sentences before partitioning and
+records input and output hashes in a manifest.
+
+Validation data support model selection. The test partition is reserved for
+evaluation after model and decoding settings are fixed. Independently prepared
+language-pair partitions do not establish a shared three-language test set.
+
+The bundled archival test files contain unequal language-specific line counts
+and cross-partition source overlap. They require a separate corpus audit and
+repartitioning from aligned source material before use in a new experiment.
+
+## Training and Evaluation
+
+After the training notebook saves the validated partitions, command-line
+training is available through:
+
+```bash
+twfr-mt train --config configs/train.example.json
+```
+
+The configuration reads validated files from
+`/content/drive/MyDrive/MT/prepared_data/en-tw-run-001`. A fresh experiment
+requires an unused output directory. Resuming an interrupted run requires a
+complete Trainer checkpoint and compatible data and configuration.
+
+Evaluate one prediction per test reference, in the same order:
+
+```bash
+twfr-mt evaluate --predictions predictions.txt --references /content/drive/MyDrive/MT/prepared_data/en-tw-run-001/test.target.txt
+```
+
+Evaluation reports case-sensitive SacreBLEU, chrF, and TER with metric
+signatures. Interpret these corpus-level measures alongside linguistic error
+analysis appropriate to the research question.
+
+## Interactive Translation
+
+With Drive mounted in Colab:
+
+```bash
 twfr-mt serve --registry configs/models.drive.json --model-root /content/drive/MyDrive/MT
 ```
 
-This command uses your mounted Colab Drive and known checkpoint directory.
-For local or container serving, stage the export and supply that environment's
-model root. `configs/models.example.json` remains a schema example for other
-direct/pivot routes; it is not the configured Drive registry.
-No checkpoint is downloaded or loaded until translation is requested. Models
-must be encoder-decoder Hugging Face exports with their tokenizer files.
+The registry selects `OPUS-mt-tw-fr-tuned` for Twi-to-French translation.
+Checkpoints must include compatible model configuration, weights, and tokenizer
+assets. Loading is deferred until translation is requested. Additional direct
+or pivot routes require an explicit checkpoint for every translation step.
 
-For a trusted older `.bin` export, convert it explicitly:
+Serving defaults to localhost with public sharing disabled. Remote access
+requires authentication through `TWFR_USERNAME` and `TWFR_PASSWORD`, or explicit
+authorization for public access. For deployment outside Colab, stage model
+exports on the hosting system and specify its model root. See
+[Deployment](docs/DEPLOYMENT.md) for artifact preparation and access control.
 
-```bash
-twfr-mt export-checkpoint --source /content/drive/MyDrive/MT/OPUS-mt-tw-fr-tuned --destination /content/drive/MyDrive/MT/OPUS-mt-tw-fr-tuned-safe --allow-legacy-bin
-```
-
-The server defaults to localhost with sharing disabled. For authenticated
-remote serving, set `TWFR_USERNAME` and `TWFR_PASSWORD` in the environment;
-never commit credentials. Text is not intentionally persisted in chat history
-or sent to third-party translation APIs. Review hosting/proxy logs separately.
-
-### Training and Evaluation
-
-```bash
-python -m pip install -e ".[train]"
-# After the training notebook validates and saves the supplied splits:
-twfr-mt train --config configs/train.example.json
-twfr-mt evaluate --predictions predictions.txt --references references.txt
-```
-
-The training config uses the notebook's validated files under
-`/content/drive/MyDrive/MT/prepared_data/en-tw-run-001` and saves to
-`/content/drive/MyDrive/MT/runs/en-tw-run-001`. Use either the notebook's training
-cell or the CLI for a fresh run, not both against the same output directory.
-The example English-to-Twi base model does not establish compatibility with
-French-to-Twi or Twi-to-French fine-tuning. Multilingual models may require
-explicit source/target tokenizer language tokens or source prefixes.
-
-The original bundled French test file has 1,070 rows, while the Twi and English
-test files have 1,071. Original source text also overlaps across splits.
-Do not silently truncate, repair, or report clean held-out results from those
-files. Use independently validated Drive data or rebuild grouped pairwise
-splits from aligned total files. Pairwise splits are not automatically aligned
-across independently prepared three-language experiments.
-
-### Deployment and Tests
-
-See [deployment options](docs/DEPLOYMENT.md). A hosted container cannot mount
-your personal Colab Drive automatically; stage authorized checkpoint exports
-onto a persistent model volume. Colab sessions and share links are not
-permanent application hosting.
+## Software Verification
 
 ```bash
 python -m pip install -e ".[dev,eval]"
 python -m pytest -q
+python -m ruff check twfr_mt tests scripts
 ```
 
-Lightweight tests do not require GPU packages. Tests with real ML dependencies
-must be distinguished from dependency-injected orchestration tests. Training
-success, translation quality, private Drive access and hosted deployment are
-not established by a passing UI or unit-test suite alone.
+Tests cover corpus validation, routing, training configuration, checkpoint
+handling, and serving controls. An optional real-dependency integration test
+exercises training and inference with a small synthetic model. Software tests
+do not establish translation performance on the research corpus. See
+[Validation and Reproducibility](docs/VALIDATION.md) for verification scope.
 
-See the [local validation record](docs/VALIDATION.md) for completed checks and
-remaining environment-specific verification.
+## Research Reference
 
-## Citation
-
-If you find this project helpful, consider citing it:
+Gyasi F, Schlippe T. Twi Machine Translation. *Big Data and Cognitive Computing*.
+2023;7(2):114. [doi:10.3390/bdcc7020114](https://doi.org/10.3390/bdcc7020114).
 
 ```bibtex
-@Article{bdcc7020114,
-    AUTHOR = {Gyasi, Frederick and Schlippe, Tim},
-    TITLE = {Twi Machine Translation},
-    JOURNAL = {Big Data and Cognitive Computing},
-    VOLUME = {7},
-    YEAR = {2023},
-    NUMBER = {2},
-    ARTICLE-NUMBER = {114},
-    URL = {https://www.mdpi.com/2504-2289/7/2/114},
-    ISSN = {2504-2289},
-    DOI = {10.3390/bdcc7020114}
+@article{gyasi2023twi,
+  author = {Gyasi, Frederick and Schlippe, Tim},
+  title = {Twi Machine Translation},
+  journal = {Big Data and Cognitive Computing},
+  year = {2023},
+  volume = {7},
+  number = {2},
+  pages = {114},
+  doi = {10.3390/bdcc7020114}
 }
 ```
 
+The [research archive](legacy/README.md) contains the earlier experimental
+scripts and tutorial. The maintained package is documented separately from
+those archival materials.
+
 ## License
-This repository is open-source and licensed under the [MIT license](https://github.com/gyasifred/TW-FR-MT/blob/main/LICENSE).
 
-## About the Author
-Maintained by [Frederick Gyasi](https://github.com/gyasifred), passionate about language technologies and cross-cultural communication.
-
+The source code is distributed under the [MIT License](LICENSE). Dataset and
+pretrained-model licenses govern their respective artifacts.
